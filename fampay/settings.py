@@ -149,3 +149,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'api.views.CustomPagination',
     'PAGE_SIZE': 10,
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://{os.environ.get("REDIS_HOST", "localhost")}:6379',
+    }
+}
