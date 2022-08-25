@@ -1,0 +1,8 @@
+venv/
+data/
+celerybeat-schedule
+.env
+docker.env
+.idea/
+.vscode/
+__pycache__/
