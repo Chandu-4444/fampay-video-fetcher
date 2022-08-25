@@ -4,7 +4,6 @@ from googleapiclient.errors import HttpError
 import os
 from api.models import Result
 import datetime
-from pprint import pprint
 
 
 @celery_app.task
@@ -13,21 +12,22 @@ def fetch_results(query=os.environ.get("SEARCH_QUERY", "cricket")):
     api_service_name = "youtube"
     api_version = "v3"
 
-    # API key
-
+    # List through the API_KEY to use the one which is not expired.
     for key in os.environ.get("API_KEY").split():
         youtube = googleapiclient.discovery.build(api_service_name, api_version, developerKey=key)
         try:
+
+            # A sentinel value to start with the first page of results.
             next_page_token = "INITIAL PAGE"
 
-            limit_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
-
+            # We'll start from fetching the recently fetched result that was stored in the database.
+            # If the database is empty, we'll start from the current timestamp.
             if Result.objects.exists():
                 limit_time = Result.objects.all().order_by("publish_time").first().publish_time.isoformat()
+            else:
+                limit_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
             while next_page_token:
-                print("Time:", limit_time)
-                print("Next Page Token = ", next_page_token)
 
                 request = youtube.search().list(
                     type="video",
@@ -41,11 +41,11 @@ def fetch_results(query=os.environ.get("SEARCH_QUERY", "cricket")):
                 )
 
                 response = request.execute()
-
                 next_page_token = response.get("nextPageToken", None)
 
                 for item in response["items"]:
-                    # We only want to store unique results
+
+                    # We only want to store unique results. Not necessary, but a sanitary measure.
                     if Result.objects.values("video_id").filter(video_id=item["id"]["videoId"]).exists():
                         continue
                     else:
@@ -57,11 +57,8 @@ def fetch_results(query=os.environ.get("SEARCH_QUERY", "cricket")):
                             publish_time=item["snippet"]["publishedAt"]
                         )
                         result.save()
-        except Exception as e:
-            print(e)
+        except HttpError:
             print("Iterating the API keys...")
             continue
         else:
             break
-
-    print("Done")

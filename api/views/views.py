@@ -8,6 +8,8 @@ from django.db.models import Q
 from api.serializers import ResultSerializer
 
 
+# A custom pagination class to handle pagination for the results.
+# A custom pagination class is needed because the default pagination class does not include response code.
 class CustomPagination(PageNumberPagination):
     def get_paginated_response(self, data, **kwargs):
         return Response({
@@ -22,6 +24,11 @@ class CustomPagination(PageNumberPagination):
 
 
 class ResultView(APIView, CustomPagination):
+    """
+    This method is used to fetch all the results.
+
+    Route: /api/search/?page=<page_number>
+    """
     serializer_class = ResultSerializer
 
     def get(self, request):
@@ -35,6 +42,10 @@ class ResultView(APIView, CustomPagination):
 
 
 class SearchView(APIView, CustomPagination):
+    """
+    This method is used to search for results based on the query.
+    Route: /api/search/?page=<page_number>&query=<query>
+    """
     serializer_class = ResultSerializer
 
     def get(self, request):

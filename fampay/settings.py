@@ -146,6 +146,6 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.views.CustomPagination',
     'PAGE_SIZE': 10,
 }
